@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Membakar Hutan, Hanguskan Ekonomi</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a2e;--muted:#6b7280;--grid:#e5e7eb;--bar:#c9ced8;--accent:#e4572e;--chip:#f3f4f6;--chipfg:#1a1a2e;--tip:#1a1a2e;--tipfg:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14161f;--fg:#f3f4f6;--muted:#9aa0ae;--grid:#2a2e3b;--bar:#4a5062;--accent:#ff7a4d;--chip:#232735;--chipfg:#f3f4f6;--tip:#f3f4f6;--tipfg:#14161f}}
+:root[data-theme="dark"]{--bg:#14161f;--fg:#f3f4f6;--muted:#9aa0ae;--grid:#2a2e3b;--bar:#4a5062;--accent:#ff7a4d;--chip:#232735;--chipfg:#f3f4f6;--tip:#f3f4f6;--tipfg:#14161f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Inter","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:28px 18px 24px}
+.kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:clamp(24px,5vw,36px);line-height:1.15;margin:6px 0 8px;font-weight:800}
+.sub{color:var(--muted);font-size:15px;line-height:1.5;margin:0 0 18px;max-width:640px}
+.kpis{display:flex;gap:28px;flex-wrap:wrap;margin:0 0 18px}
+.kpi b{display:block;font-size:26px;font-weight:800}
+.kpi span{font-size:12px;color:var(--muted)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:0;background:var(--chip);color:var(--chipfg);padding:7px 14px;border-radius:999px;font:600 13px inherit;font-family:inherit;cursor:pointer}
+.chip.on{background:var(--fg);color:var(--bg)}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-bottom:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.row{display:grid;grid-template-columns:minmax(96px,170px) 1fr;align-items:center;gap:10px;height:26px;border-top:1px solid var(--grid)}
+.row:first-child{border-top:0}
+.name{font-size:13px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{display:flex;align-items:center;height:100%}
+.bar{height:16px;border-radius:0 4px 4px 0;background:var(--bar);width:0;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.bar.k{background:var(--accent)}
+.val{font-size:12px;font-weight:700;margin-left:8px;white-space:nowrap;opacity:0;transition:opacity .4s .7s}
+.go .val{opacity:1}
+.row:hover .name{font-weight:700}
+.foot{margin-top:18px;font-size:12px;color:var(--muted);line-height:1.5}
+@media (max-width:520px){.row{grid-template-columns:96px 1fr}.name{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">CELIOS · Kebakaran hutan dan lahan</div>
+  <h1>Membakar hutan, hanguskan ekonomi</h1>
+  <p class="sub">Estimasi kerugian ekonomi akibat kebakaran hutan dan lahan menurut wilayah. Papua, Kalimantan Barat, dan Kalimantan Tengah menanggung kerugian terbesar.</p>
+  <div class="kpis">
+    <div class="kpi"><b id="tot">–</b><span>Total kerugian (jumlah 34 wilayah)</span></div>
+    <div class="kpi"><b id="kal">–</b><span>Dari 5 provinsi Kalimantan</span></div>
+  </div>
+  <div class="chips" id="chips">
+    <button class="chip on" data-f="all">Semua wilayah</button>
+    <button class="chip" data-f="top10">10 teratas</button>
+    <button class="chip" data-f="kal">Kalimantan</button>
+  </div>
+  <div class="legend"><span><i style="background:var(--accent)"></i>Kalimantan</span><span><i style="background:var(--bar)"></i>Wilayah lain</span></div>
+  <div id="chart" role="list"></div>
+  <div class="foot">Satuan: Rp triliun. Sumber: CELIOS, <em>Membakar Hutan, Hanguskan Ekonomi</em>, Tabel 3, halaman 5. Angka mengikuti pengelompokan wilayah dalam laporan.</div>
+</div>
+<script>
+const D=[["Papua",59.43],["Kalimantan Barat",41.91],["Kalimantan Tengah",32.89],["Nusa Tenggara Timur",31.33],["Sumatera Selatan",29.08],["Jawa Timur",25.39],["Kalimantan Selatan",20.74],["DKI Jakarta",11.51],["Kalimantan Timur",11.50],["Maluku",10.76],["Nusa Tenggara Barat",9.71],["Jawa Tengah",6.91],["Jawa Barat",6.86],["Sulawesi Selatan",5.97],["Riau",4.33],["Lampung",4.23],["Sulawesi Tenggara",4.16],["Sulawesi Tengah",3.99],["Banten",2.04],["Jambi",1.83],["Kepulauan Bangka Belitung",1.87],["Maluku Utara",1.41],["Sumatera Utara",1.63],["Kalimantan Utara",1.13],["Sumatera Barat",0.82],["Kepulauan Riau",0.80],["Aceh",0.80],["Sulawesi Utara",1.22],["Bali",0.37],["Sulawesi Barat",0.47],["DI Yogyakarta",0.43],["Gorontalo",0.27],["Bengkulu",0.14],["Papua Barat",4.45]].sort((a,b)=>b[1]-a[1]);
+const fmt=n=>"Rp"+n.toFixed(2).replace(".",",")+" T";
+const isK=n=>n.startsWith("Kalimantan");
+const tot=D.reduce((s,d)=>s+d[1],0), kal=D.filter(d=>isK(d[0])).reduce((s,d)=>s+d[1],0);
+document.getElementById("tot").textContent=fmt(tot);
+document.getElementById("kal").textContent=fmt(kal)+" ("+Math.round(kal/tot*100)+"%)";
+const max=D[0][1], el=document.getElementById("chart");
+function render(f){
+  const rows=D.filter((d,i)=>f==="all"||(f==="top10"&&i<10)||(f==="kal"&&isK(d[0])));
+  el.classList.remove("go");
+  el.innerHTML=rows.map(d=>`<div class="row" role="listitem" title="${d[0]}: ${fmt(d[1])}"><div class="name">${d[0]}</div><div class="track"><div class="bar${isK(d[0])?" k":""}" data-w="${d[1]/max*88}"></div><span class="val">${fmt(d[1])}</span></div></div>`).join("");
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{el.classList.add("go");el.querySelectorAll(".bar").forEach(b=>b.style.width=b.dataset.w+"%")}));
+}
+document.getElementById("chips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c===b));render(b.dataset.f)});
+render("all");
+</script>
+</body>
+</html>
